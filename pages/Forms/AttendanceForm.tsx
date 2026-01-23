@@ -189,7 +189,7 @@ const AttendanceForm: React.FC<Props> = ({ onSubmit, onCancel, initialData, prof
                 />
                 {isLate && (
                   <div className="mt-2 flex items-center gap-1.5 text-xs font-bold text-amber-600">
-                    <AlertTriangle className="w-3.5 h-3.5" /> Considered Late (> 9:30 AM)
+                    <AlertTriangle className="w-3.5 h-3.5" /> Considered Late (&gt; 9:30 AM)
                   </div>
                 )}
               </div>
