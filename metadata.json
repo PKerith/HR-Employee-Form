@@ -1,0 +1,7 @@
+{
+  "name": "Employee Concern & Request Portal",
+  "description": "A modern, responsive employee management system for handling leave, business trips, overtime, attendance, and letter requests with real-time status tracking.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
