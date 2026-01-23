@@ -61,7 +61,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, profile, onEditProfile
       {/* Footer */}
       <footer className="bg-white border-t border-slate-200 py-6">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-slate-400 text-sm">
-          &copy; {new Date().getFullYear()} Nexus HR Employee Concern Portal. Built for efficiency.
+          &copy; {new Date().getFullYear()} Nexus HR Employee Concern Portal. v1.0.0 • Built for efficiency.
         </div>
       </footer>
     </div>
