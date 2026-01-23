@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
-import { FormType, AttendanceRequest, RequestStatus, EmployeeProfile } from '../../types';
-import { ATTENDANCE_CATEGORIES } from '../../constants';
+import { FormType, AttendanceRequest, RequestStatus, EmployeeProfile } from '../../types.ts';
+import { ATTENDANCE_CATEGORIES } from '../../constants.tsx';
 import { CheckCircle, Calendar, Clock, ChevronLeft, ArrowRight, AlertTriangle, Info } from 'lucide-react';
 
 interface Props {

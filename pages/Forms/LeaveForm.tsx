@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { FormType, LeaveRequest, RequestStatus, EmployeeProfile, AnyRequest } from '../../types';
+import { FormType, LeaveRequest, RequestStatus, EmployeeProfile, AnyRequest } from '../../types.ts';
 import { Calendar, Paperclip, ChevronLeft, ArrowRight, Info, FileCheck } from 'lucide-react';
 
 interface Props {

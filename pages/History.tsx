@@ -1,7 +1,7 @@
 
 import React from 'react';
-import { AnyRequest, RequestStatus } from '../types';
-import { FORM_OPTIONS } from '../constants';
+import { AnyRequest, RequestStatus } from '../types.ts';
+import { FORM_OPTIONS } from '../constants.tsx';
 import { 
   Plus, 
   Clock, 

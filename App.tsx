@@ -1,15 +1,15 @@
 
 import React, { useState, useEffect } from 'react';
-import { EmployeeProfile, FormType, AnyRequest, RequestStatus } from './types';
-import AuthPage from './pages/EmployeeProfile';
-import FormSelectionPage from './pages/FormSelection';
-import LeaveForm from './pages/Forms/LeaveForm';
-import BusinessTripForm from './pages/Forms/BusinessTripForm';
-import OvertimeForm from './pages/Forms/OvertimeForm';
-import AttendanceForm from './pages/Forms/AttendanceForm';
-import LetterRequestForm from './pages/Forms/LetterRequestForm';
-import HistoryPage from './pages/History';
-import { Layout } from './components/Layout';
+import { EmployeeProfile, FormType, AnyRequest, RequestStatus } from './types.ts';
+import AuthPage from './pages/EmployeeProfile.tsx';
+import FormSelectionPage from './pages/FormSelection.tsx';
+import LeaveForm from './pages/Forms/LeaveForm.tsx';
+import BusinessTripForm from './pages/Forms/BusinessTripForm.tsx';
+import OvertimeForm from './pages/Forms/OvertimeForm.tsx';
+import AttendanceForm from './pages/Forms/AttendanceForm.tsx';
+import LetterRequestForm from './pages/Forms/LetterRequestForm.tsx';
+import HistoryPage from './pages/History.tsx';
+import { Layout } from './components/Layout.tsx';
 
 const App: React.FC = () => {
   const [profile, setProfile] = useState<EmployeeProfile | null>(() => {

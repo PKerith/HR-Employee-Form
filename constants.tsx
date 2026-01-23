@@ -12,7 +12,7 @@ import {
   Building2,
   Trophy
 } from 'lucide-react';
-import { FormType } from './types';
+import { FormType } from './types.ts';
 
 export const DEPARTMENTS = ['HR', 'Engineering', 'Sales', 'Marketing', 'Operations', 'Finance', 'Legal'];
 export const POSITIONS = ['Manager', 'Lead', 'Senior Associate', 'Associate', 'Intern', 'Specialist'];

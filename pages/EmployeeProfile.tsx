@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
-import { EmployeeProfile, EmploymentType } from '../types';
-import { DEPARTMENTS, TEAMS, POSITIONS } from '../constants';
+import { EmployeeProfile, EmploymentType } from '../types.ts';
+import { DEPARTMENTS, TEAMS, POSITIONS } from '../constants.tsx';
 import { User, Briefcase, Building, Users, ShieldCheck, Key, Lock, Eye, EyeOff, Heart, HelpCircle } from 'lucide-react';
 
 interface Props {

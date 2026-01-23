@@ -1,7 +1,7 @@
 
 import React from 'react';
-import { FormType } from '../types';
-import { FORM_OPTIONS } from '../constants';
+import { FormType } from '../types.ts';
+import { FORM_OPTIONS } from '../constants.tsx';
 import { ChevronRight, History } from 'lucide-react';
 
 interface Props {
