@@ -13,24 +13,60 @@ import { Layout } from './components/Layout.tsx';
 import { supabase } from './lib/supabase.ts';
 
 const App: React.FC = () => {
-  const [profile, setProfile] = useState<EmployeeProfile | null>(() => {
-    const saved = localStorage.getItem('employee_profile');
-    return saved ? JSON.parse(saved) : null;
-  });
-
+  const [profile, setProfile] = useState<EmployeeProfile | null>(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-
   const [requests, setRequests] = useState<AnyRequest[]>([]);
+  const [currentStep, setCurrentStep] = useState<'auth' | 'selection' | 'form' | 'history'>('auth');
+  const [activeFormType, setActiveFormType] = useState<FormType | null>(null);
+  const [editingRequest, setEditingRequest] = useState<AnyRequest | null>(null);
 
   useEffect(() => {
-    if (profile && isLoggedIn) {
-      localStorage.setItem('employee_profile', JSON.stringify(profile));
-      if (currentStep === 'auth') setCurrentStep('selection');
+    // Initial session check
+    const initSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      handleAuthChange(session);
+    };
+
+    initSession();
+
+    // Listen for auth state changes (login, logout, signup)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      handleAuthChange(session);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const handleAuthChange = (session: any) => {
+    if (session?.user) {
+      setIsLoggedIn(true);
+      const metadata = session.user.user_metadata;
+      
+      // Map Supabase User Metadata back to our EmployeeProfile type
+      setProfile({
+        name: metadata.name || '',
+        employmentType: metadata.employmentType || '',
+        department: metadata.department || '',
+        team: metadata.team || '',
+        position: metadata.position || '',
+        username: session.user.email || '',
+        gender: metadata.gender || 'Male',
+        civilStatus: metadata.civilStatus || 'Single',
+        soloParent: metadata.soloParent || 'No'
+      });
+
       fetchRequests();
+      
+      // Redirect to selection page if we are currently on the auth page
+      if (currentStep === 'auth') {
+        setCurrentStep('selection');
+      }
     } else {
+      setIsLoggedIn(false);
+      setProfile(null);
       setCurrentStep('auth');
     }
-  }, [profile, isLoggedIn]);
+  };
 
   const fetchRequests = async () => {
     const { data, error } = await supabase
@@ -47,58 +83,55 @@ const App: React.FC = () => {
         employeeId: row.employee_id,
         formType: row.form_type,
         status: row.status,
-        createdAt: row.created_at
+        createdAt: row.created_at ? new Date(row.created_at).getTime() : Date.now()
       }));
       setRequests(formattedRequests);
     }
   };
 
-  const [currentStep, setCurrentStep] = useState<'auth' | 'selection' | 'form' | 'history'>('auth');
-  const [activeFormType, setActiveFormType] = useState<FormType | null>(null);
-  const [editingRequest, setEditingRequest] = useState<AnyRequest | null>(null);
-
-  const handleProfileSubmit = (data: EmployeeProfile) => {
-    setProfile(data);
-  };
-
-  const handleLogin = (success: boolean) => {
-    if (success) {
-      setIsLoggedIn(true);
-      setCurrentStep('selection');
-    }
-  };
-
-  const handleFormSelect = (type: FormType) => {
-    setActiveFormType(type);
-    setCurrentStep('form');
-  };
-
   const handleSubmitRequest = async (request: AnyRequest) => {
     const { id, employeeId, formType, status, createdAt, ...data } = request;
     
-    const { error } = await supabase
-      .from('requests')
-      .upsert({
-        id,
-        employee_id: employeeId,
-        form_type: formType,
-        status,
-        created_at: createdAt,
-        data: data
-      });
+    let error;
+    if (editingRequest) {
+      // For updates, we target the specific ID
+      const { error: updateError } = await supabase
+        .from('requests')
+        .update({
+          employee_id: employeeId,
+          form_type: formType,
+          status: status,
+          data: data
+        })
+        .eq('id', id);
+      error = updateError;
+    } else {
+      // For inserts, database auto-generates id and user_id (auth.uid())
+      const { error: insertError } = await supabase
+        .from('requests')
+        .insert({
+          employee_id: employeeId,
+          form_type: formType,
+          status: status,
+          data: data
+        });
+      error = insertError;
+    }
 
     if (error) {
+      console.error("Supabase error:", error);
       alert("Error saving to database: " + error.message);
       return;
     }
 
-    if (editingRequest) {
-      setRequests(prev => prev.map(r => r.id === editingRequest.id ? request : r));
-      setEditingRequest(null);
-    } else {
-      setRequests(prev => [request, ...prev]);
-    }
+    await fetchRequests();
+    setEditingRequest(null);
     setCurrentStep('history');
+  };
+
+  const handleLogout = async () => {
+    const { error } = await supabase.auth.signOut();
+    if (error) console.error("Logout error:", error.message);
   };
 
   const handleEdit = (request: AnyRequest) => {
@@ -138,15 +171,9 @@ const App: React.FC = () => {
   const renderCurrentPage = () => {
     switch (currentStep) {
       case 'auth':
-        return (
-          <AuthPage 
-            onSubmit={handleProfileSubmit} 
-            onLogin={handleLogin}
-            savedProfile={profile} 
-          />
-        );
+        return <AuthPage onSubmit={() => {}} onLogin={() => {}} savedProfile={profile} />;
       case 'selection':
-        return <FormSelectionPage onSelect={handleFormSelect} onViewHistory={() => setCurrentStep('history')} />;
+        return <FormSelectionPage onSelect={(type) => { setActiveFormType(type); setCurrentStep('form'); }} onViewHistory={() => setCurrentStep('history')} />;
       case 'form':
         if (!activeFormType) return null;
         const formProps = {
@@ -181,10 +208,10 @@ const App: React.FC = () => {
 
   return (
     <Layout 
-      profile={isLoggedIn ? profile : null} 
+      profile={profile} 
       onEditProfile={() => setCurrentStep('auth')}
       onGoHome={() => isLoggedIn ? setCurrentStep('selection') : null}
-      onLogout={() => setIsLoggedIn(false)}
+      onLogout={handleLogout}
     >
       {renderCurrentPage()}
     </Layout>
