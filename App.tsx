@@ -21,7 +21,6 @@ const App: React.FC = () => {
   const [editingRequest, setEditingRequest] = useState<AnyRequest | null>(null);
 
   useEffect(() => {
-    // Initial session check
     const initSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       handleAuthChange(session);
@@ -29,13 +28,12 @@ const App: React.FC = () => {
 
     initSession();
 
-    // Listen for auth state changes (login, logout, signup)
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       handleAuthChange(session);
     });
 
     return () => subscription.unsubscribe();
-  }, []);
+  }, [currentStep]);
 
   const handleAuthChange = (session: any) => {
     if (session?.user) {
@@ -43,7 +41,9 @@ const App: React.FC = () => {
       const metadata = session.user.user_metadata;
       
       // Map Supabase User Metadata back to our EmployeeProfile type
+      // Using session.user.id as the employeeId linked to auth.uid()
       setProfile({
+        employeeId: session.user.id,
         name: metadata.name || '',
         employmentType: metadata.employmentType || '',
         department: metadata.department || '',
@@ -57,8 +57,11 @@ const App: React.FC = () => {
 
       fetchRequests();
       
-      // Redirect to selection page if we are currently on the auth page
-      if (currentStep === 'auth') {
+      // Strict Redirection Flow:
+      // Only transition to selection if we are on the auth page AND it's not a fresh signup
+      // (The EmployeeProfile page handles the signup->logout->login requirement)
+      const isSignupInProgress = localStorage.getItem('nexus_signup_active') === 'true';
+      if (currentStep === 'auth' && !isSignupInProgress) {
         setCurrentStep('selection');
       }
     } else {
@@ -90,36 +93,35 @@ const App: React.FC = () => {
   };
 
   const handleSubmitRequest = async (request: AnyRequest) => {
-    const { id, employeeId, formType, status, createdAt, ...data } = request;
+    // Destructure to separate specific fields from the form data
+    const { id, employeeId: _unused, formType, status, createdAt, ...data } = request;
     
-    // Get the current user session to include user_id
     const { data: { user } } = await supabase.auth.getUser();
+    const currentUserId = user?.id || '';
     
     let error;
     if (editingRequest) {
-      // Update existing record
       const { error: updateError } = await supabase
         .from('requests')
         .update({
-          employee_id: employeeId,
+          employee_id: currentUserId,
           form_type: formType,
           status: status,
           data: data,
-          user_id: user?.id
+          user_id: currentUserId
         })
         .eq('id', id);
       error = updateError;
     } else {
-      // For inserts, database auto-generates id. 
-      // Explicitly providing: employee_id, form_type, status, data, user_id
+      // Insert only specific fields. id and created_at are auto-generated.
       const { error: insertError } = await supabase
         .from('requests')
         .insert({
-          employee_id: employeeId,
+          employee_id: currentUserId, // Using UUID linked to auth.uid()
           form_type: formType,
           status: status,
           data: data,
-          user_id: user?.id
+          user_id: currentUserId
         });
       error = insertError;
     }
@@ -136,8 +138,7 @@ const App: React.FC = () => {
   };
 
   const handleLogout = async () => {
-    const { error } = await supabase.auth.signOut();
-    if (error) console.error("Logout error:", error.message);
+    await supabase.auth.signOut();
   };
 
   const handleEdit = (request: AnyRequest) => {

@@ -18,6 +18,7 @@ const AuthPage: React.FC<Props> = () => {
 
   // Signup State
   const [signupData, setSignupData] = useState<EmployeeProfile>({
+    employeeId: '',
     name: '',
     employmentType: EmploymentType.REGULAR,
     department: '',
@@ -46,7 +47,9 @@ const AuthPage: React.FC<Props> = () => {
     }
 
     setLoading(true);
-    // Use username field as the email for Supabase Auth
+    // Set a transient flag so App.tsx knows to ignore any auto-login events during signup
+    localStorage.setItem('nexus_signup_active', 'true');
+
     const { data, error } = await supabase.auth.signUp({
       email: signupData.username,
       password: signupData.password || '',
@@ -64,17 +67,17 @@ const AuthPage: React.FC<Props> = () => {
       }
     });
 
-    setLoading(false);
     if (error) {
       alert("Signup failed: " + error.message);
+      localStorage.removeItem('nexus_signup_active');
     } else {
-      // Force logout after signup to ensure the user must manually log in per the requirements
-      if (data.session) {
-        await supabase.auth.signOut();
-      }
+      // Force logout to fulfill the requirement: "They must log in with the credentials they just created."
+      await supabase.auth.signOut();
+      localStorage.removeItem('nexus_signup_active');
       alert("Account created successfully! Please log in with your credentials.");
       setMode('login');
     }
+    setLoading(false);
   };
 
   const handleLogin = async (e: React.FormEvent) => {

@@ -20,6 +20,7 @@ export enum FormType {
 }
 
 export interface EmployeeProfile {
+  employeeId: string;
   name: string;
   employmentType: EmploymentType;
   department: string;
