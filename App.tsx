@@ -92,28 +92,34 @@ const App: React.FC = () => {
   const handleSubmitRequest = async (request: AnyRequest) => {
     const { id, employeeId, formType, status, createdAt, ...data } = request;
     
+    // Get the current user session to include user_id
+    const { data: { user } } = await supabase.auth.getUser();
+    
     let error;
     if (editingRequest) {
-      // For updates, we target the specific ID
+      // Update existing record
       const { error: updateError } = await supabase
         .from('requests')
         .update({
           employee_id: employeeId,
           form_type: formType,
           status: status,
-          data: data
+          data: data,
+          user_id: user?.id
         })
         .eq('id', id);
       error = updateError;
     } else {
-      // For inserts, database auto-generates id and user_id (auth.uid())
+      // For inserts, database auto-generates id. 
+      // Explicitly providing: employee_id, form_type, status, data, user_id
       const { error: insertError } = await supabase
         .from('requests')
         .insert({
           employee_id: employeeId,
           form_type: formType,
           status: status,
-          data: data
+          data: data,
+          user_id: user?.id
         });
       error = insertError;
     }

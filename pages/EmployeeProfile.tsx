@@ -47,7 +47,7 @@ const AuthPage: React.FC<Props> = () => {
 
     setLoading(true);
     // Use username field as the email for Supabase Auth
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email: signupData.username,
       password: signupData.password || '',
       options: {
@@ -68,7 +68,11 @@ const AuthPage: React.FC<Props> = () => {
     if (error) {
       alert("Signup failed: " + error.message);
     } else {
-      alert("Account created! Please check your email for confirmation (if enabled) or log in now.");
+      // Force logout after signup to ensure the user must manually log in per the requirements
+      if (data.session) {
+        await supabase.auth.signOut();
+      }
+      alert("Account created successfully! Please log in with your credentials.");
       setMode('login');
     }
   };
