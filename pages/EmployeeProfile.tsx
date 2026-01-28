@@ -76,39 +76,68 @@ const AuthPage: React.FC<Props> = () => {
     //   setMode('login');
     // }
 
-          try {
-        const response = await fetch('/api/createUser', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            email: signupData.email,
-            password: signupData.password,
-            profileData: {
-              full_name: signupData.name,
-              employment_type: signupData.employmentType,
-              department: signupData.department,
-              team: signupData.team,
-              position: signupData.position,
-              gender: signupData.gender,
-              civil_status: signupData.civilStatus,
-              solo_parent: signupData.soloParent,
-              username: signupData.username
-            }
-          }),
-        });
+      //     try {
+      //   const response = await fetch('/api/createUser', {
+      //     method: 'POST',
+      //     headers: { 'Content-Type': 'application/json' },
+      //     body: JSON.stringify({
+      //       email: signupData.email,
+      //       password: signupData.password,
+      //       profileData: {
+      //         full_name: signupData.name,
+      //         employment_type: signupData.employmentType,
+      //         department: signupData.department,
+      //         team: signupData.team,
+      //         position: signupData.position,
+      //         gender: signupData.gender,
+      //         civil_status: signupData.civilStatus,
+      //         solo_parent: signupData.soloParent,
+      //         username: signupData.username
+      //       }
+      //     }),
+      //   });
 
-        const data = await response.json();
+      //   const data = await response.json();
 
-        if (data.error) {
-          alert("Signup failed: " + data.error);
-        } else {
-          alert("Account created successfully! Please log in with your credentials.");
-          setMode('login');
-        }
-      } catch (err) {
-        alert("Network error while creating account.");
-        console.error(err);
-      }
+      //   if (data.error) {
+      //     alert("Signup failed: " + data.error);
+      //   } else {
+      //     alert("Account created successfully! Please log in with your credentials.");
+      //     setMode('login');
+      //   }
+      // } catch (err) {
+      //   alert("Network error while creating account.");
+      //   console.error(err);
+      // }
+
+              // Sign up user directly with Supabase (no API route)
+const { data, error } = await supabase.auth.signUp({
+  email: signupData.email,
+  password: signupData.password,
+  options: {
+    data: {
+      full_name: signupData.name,
+      employment_type: signupData.employmentType,
+      department: signupData.department,
+      team: signupData.team,
+      position: signupData.position,
+      gender: signupData.gender,
+      civil_status: signupData.civilStatus,
+      solo_parent: signupData.soloParent,
+      username: signupData.username
+    }
+  }
+});
+
+if (error) {
+  alert('Signup failed: ' + error.message);
+} else {
+  await supabase.auth.signOut(); // optional: force logout for verification
+  alert('Account created successfully! Please log in.');
+  setMode('login'); // switch to login form
+}
+
+
 
     setLoading(false);
   };
