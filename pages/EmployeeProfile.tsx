@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { EmployeeProfile, EmploymentType } from '../types.ts';
 import { DEPARTMENTS, TEAMS, POSITIONS } from '../constants.tsx';
-import { User, Briefcase, Building, Users, ShieldCheck, Key, Lock, Eye, EyeOff } from 'lucide-react';
+import { User, Briefcase, Building, Users, ShieldCheck, Key, Lock, Eye, EyeOff, Mail, BadgeCheck } from 'lucide-react';
 import { supabase } from '../lib/supabase.ts';
 
 interface Props {
@@ -17,16 +17,16 @@ const AuthPage: React.FC<Props> = () => {
   const [loading, setLoading] = useState(false);
 
   // Signup State
-  const [signupData, setSignupData] = useState<EmployeeProfile>({
-    employeeId: '',
+  const [signupData, setSignupData] = useState({
     name: '',
     employmentType: EmploymentType.REGULAR,
     department: '',
     team: '',
     position: '',
-    gender: 'Male',
-    civilStatus: 'Single',
-    soloParent: 'No',
+    gender: 'Male' as 'Male' | 'Female',
+    civilStatus: 'Single' as any,
+    soloParent: 'No' as 'Yes' | 'No',
+    email: '',
     username: '',
     password: ''
   });
@@ -47,33 +47,31 @@ const AuthPage: React.FC<Props> = () => {
     }
 
     setLoading(true);
-    // Set a transient flag so App.tsx knows to ignore any auto-login events during signup
-    localStorage.setItem('nexus_signup_active', 'true');
 
+    // Exact mapping to app_profiles columns to ensure the trigger works "for real"
     const { data, error } = await supabase.auth.signUp({
-      email: signupData.username,
-      password: signupData.password || '',
+      email: signupData.email,
+      password: signupData.password,
       options: {
         data: {
-          name: signupData.name,
-          employmentType: signupData.employmentType,
+          full_name: signupData.name,
+          employment_type: signupData.employmentType,
           department: signupData.department,
           team: signupData.team,
           position: signupData.position,
           gender: signupData.gender,
-          civilStatus: signupData.civilStatus,
-          soloParent: signupData.soloParent
+          civil_status: signupData.civilStatus,
+          solo_parent: signupData.soloParent,
+          username: signupData.username
         }
       }
     });
 
     if (error) {
       alert("Signup failed: " + error.message);
-      localStorage.removeItem('nexus_signup_active');
     } else {
-      // Force logout to fulfill the requirement: "They must log in with the credentials they just created."
+      // Force logout to ensure session verification upon login
       await supabase.auth.signOut();
-      localStorage.removeItem('nexus_signup_active');
       alert("Account created successfully! Please log in with your credentials.");
       setMode('login');
     }
@@ -178,15 +176,21 @@ const AuthPage: React.FC<Props> = () => {
             </div>
           </div>
 
-          <div className={rowClasses}>
-            <label className={labelClasses}><Key className="w-4 h-4" /> Email (Username)*</label>
-            <input type="email" required className={inputClasses} placeholder="your@email.com" value={signupData.username} onChange={e => setSignupData({ ...signupData, username: e.target.value })} />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6">
+            <div className={rowClasses}>
+              <label className={labelClasses}><Mail className="w-4 h-4" /> Email*</label>
+              <input type="email" required className={inputClasses} placeholder="your@email.com" value={signupData.email} onChange={e => setSignupData({ ...signupData, email: e.target.value })} />
+            </div>
+            <div className={rowClasses}>
+              <label className={labelClasses}><BadgeCheck className="w-4 h-4" /> Username*</label>
+              <input type="text" required className={inputClasses} placeholder="Display name" value={signupData.username} onChange={e => setSignupData({ ...signupData, username: e.target.value })} />
+            </div>
           </div>
 
           <div className={rowClasses}>
             <label className={labelClasses}><Lock className="w-4 h-4" /> Password*</label>
             <div className="relative">
-              <input type={showPassword ? "text" : "password"} required className={inputClasses} value={signupData.password || ''} onChange={e => setSignupData({ ...signupData, password: e.target.value })} />
+              <input type={showPassword ? "text" : "password"} required className={inputClasses} value={signupData.password} onChange={e => setSignupData({ ...signupData, password: e.target.value })} />
               <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-[#083D77]">
                 {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
               </button>
@@ -243,7 +247,7 @@ const AuthPage: React.FC<Props> = () => {
 
       <form onSubmit={handleLogin} className="bg-[#F2F4F7] rounded-3xl border border-[#D1D5DB] p-8 md:p-10 shadow-sm">
         <div className={rowClasses}>
-          <label className={labelClasses}><Key className="w-4 h-4" /> Email</label>
+          <label className={labelClasses}><Mail className="w-4 h-4" /> Email</label>
           <input type="email" required className={inputClasses} placeholder="your@email.com" value={loginUsername} onChange={e => setLoginUsername(e.target.value)} />
         </div>
 

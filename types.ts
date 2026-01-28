@@ -31,6 +31,7 @@ export interface EmployeeProfile {
   gender: 'Male' | 'Female';
   civilStatus: 'Single' | 'Married' | 'Widowed' | 'Separated' | 'Annulled';
   soloParent: 'Yes' | 'No';
+  role?: 'admin' | 'user';
 }
 
 export interface BaseRequest {
