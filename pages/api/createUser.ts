@@ -3,8 +3,8 @@ import { createClient } from '@supabase/supabase-js';
 
 // Use service role key (server-side only)
 const supabaseAdmin = createClient(
-  'https://yxvpmtjegttvhnjxjxtx.supabase.co', // Supabase URL
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl4dnBtdGplZ3R0dmhuanhqeHR4Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2OTQ2MjQyMSwiZXhwIjoyMDg1MDM4NDIxfQ.e0FMFNyvFYubONJUxMOYZ5SVKNOMLdYtpmeEDz01O7U'                    // Service role key
+  process.env.SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_KEY!
 );
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
