@@ -49,32 +49,67 @@ const AuthPage: React.FC<Props> = () => {
     setLoading(true);
 
     // Exact mapping to app_profiles columns to ensure the trigger works "for real"
-    const { data, error } = await supabase.auth.signUp({
-      email: signupData.email,
-      password: signupData.password,
-      options: {
-        data: {
-          full_name: signupData.name,
-          employment_type: signupData.employmentType,
-          department: signupData.department,
-          team: signupData.team,
-          position: signupData.position,
-          gender: signupData.gender,
-          civil_status: signupData.civilStatus,
-          solo_parent: signupData.soloParent,
-          username: signupData.username
-        }
-      }
-    });
+    // const { data, error } = await supabase.auth.signUp({
+    //   email: signupData.email,
+    //   password: signupData.password,
+    //   options: {
+    //     data: {
+    //       full_name: signupData.name,
+    //       employment_type: signupData.employmentType,
+    //       department: signupData.department,
+    //       team: signupData.team,
+    //       position: signupData.position,
+    //       gender: signupData.gender,
+    //       civil_status: signupData.civilStatus,
+    //       solo_parent: signupData.soloParent,
+    //       username: signupData.username
+    //     }
+    //   }
+    // });
 
-    if (error) {
-      alert("Signup failed: " + error.message);
-    } else {
-      // Force logout to ensure session verification upon login
-      await supabase.auth.signOut();
-      alert("Account created successfully! Please log in with your credentials.");
-      setMode('login');
-    }
+    // if (error) {
+    //   alert("Signup failed: " + error.message);
+    // } else {
+    //   // Force logout to ensure session verification upon login
+    //   await supabase.auth.signOut();
+    //   alert("Account created successfully! Please log in with your credentials.");
+    //   setMode('login');
+    // }
+
+          try {
+        const response = await fetch('/api/createUser', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: signupData.email,
+            password: signupData.password,
+            profileData: {
+              full_name: signupData.name,
+              employment_type: signupData.employmentType,
+              department: signupData.department,
+              team: signupData.team,
+              position: signupData.position,
+              gender: signupData.gender,
+              civil_status: signupData.civilStatus,
+              solo_parent: signupData.soloParent,
+              username: signupData.username
+            }
+          }),
+        });
+
+        const data = await response.json();
+
+        if (data.error) {
+          alert("Signup failed: " + data.error);
+        } else {
+          alert("Account created successfully! Please log in with your credentials.");
+          setMode('login');
+        }
+      } catch (err) {
+        alert("Network error while creating account.");
+        console.error(err);
+      }
+
     setLoading(false);
   };
 
