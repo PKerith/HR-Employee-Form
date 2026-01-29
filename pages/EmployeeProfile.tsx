@@ -95,11 +95,19 @@ const AuthPage: React.FC<Props> = () => {
       password: signupData.password
     });
 
+    // if (authError) {
+    //   alert("Signup failed (Auth): " + authError.message);
+    //   setLoading(false);
+    //   return;
+    // }
+
     if (authError) {
-      alert("Signup failed (Auth): " + authError.message);
-      setLoading(false);
-      return;
-    }
+  console.error("Supabase Auth signup error full object:", authError);
+  alert("Signup failed (Auth): " + authError.message);
+  setLoading(false);
+  return;
+}
+
 
     if (!authData.user?.id) {
       alert("Signup failed: User ID not returned from Auth");
