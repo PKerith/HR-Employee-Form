@@ -141,12 +141,6 @@ const AuthPage: React.FC<Props> = () => {
   setMode('login');
   setLoading(false);
 
-  // catch (err) {
-  //   console.error("Unexpected signup error", err);
-  //   alert("signup failed: Unexpected error");
-  //   setLoading(false);
-  // }
-
 };
 
 
