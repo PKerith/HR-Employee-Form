@@ -115,18 +115,20 @@ const { data, error } = await supabase.auth.signUp({
   email: signupData.email,
   password: signupData.password,
   options: {
-    data: {
-      full_name: signupData.name,
-      employment_type: signupData.employmentType,
-      department: signupData.department,
-      team: signupData.team,
-      position: signupData.position,
-      gender: signupData.gender,
-      civil_status: signupData.civilStatus,
-      solo_parent: signupData.soloParent,
-      username: signupData.username
-    }
+  data: {
+    full_name: form.full_name,
+    username: form.username,
+    employment_type: form.employment_type,
+    department: form.department,
+    team: form.team,
+    position: form.position,
+    gender: form.gender,
+    civil_status: form.civil_status,
+    solo_parent: form.solo_parent,
+    role: 'user'
   }
+}
+
 });
 
 if (error) {
