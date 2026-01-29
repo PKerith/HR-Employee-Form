@@ -88,13 +88,14 @@ const AuthPage: React.FC<Props> = () => {
 
   setLoading(true);
 
-  // 1️⃣ Create user in Supabase Auth
+try {
+    // 1️⃣ Create user in Supabase Auth
   const { data: authData, error: authError } = await supabase.auth.signUp({
     email: signupData.email,
     password: signupData.password
   });
 
-  if (authError) {
+    if (authError) {
     alert("Signup failed: " + authError.message);
     setLoading(false);
     return;
@@ -106,7 +107,11 @@ const AuthPage: React.FC<Props> = () => {
     return;
   }
 
-  const employeeId = Math.floor(100000 + Math.random() * 900000).toString();
+  const generateEmployeeId = () => {
+    const randomNum = Math.floor(100000 + Math.random() * 900000 );
+    return 'EMP-${randomNum}';
+  };
+  const employeeId = generateEmployeeId();
 
   // 2️⃣ Insert user into profiles table
   const { data: profileData, error: profileError } = await supabase
@@ -140,6 +145,12 @@ const AuthPage: React.FC<Props> = () => {
   alert("Account created successfully! Your Employee ID is ${employeeId}. Please log in.");
   setMode('login');
   setLoading(false);
+
+} catch (err) {
+  console.error("Unexpected signup error:", err);
+  alert("Signup failed: Unexpected error");
+  setLoading(false);
+}
 
 };
 
