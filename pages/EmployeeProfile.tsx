@@ -88,71 +88,74 @@ const AuthPage: React.FC<Props> = () => {
 
   setLoading(true);
 
-try {
+  try {
     // 1️⃣ Create user in Supabase Auth
-  const { data: authData, error: authError } = await supabase.auth.signUp({
-    email: signupData.email,
-    password: signupData.password
-  });
-
-    if (authError) {
-    alert("Signup failed: " + authError.message);
-    setLoading(false);
-    return;
-  }
-
-  if (!authData.user?.id) {
-    alert("Signun failed: User ID not returned from Auth");
-    setLoading(false);
-    return;
-  }
-
-  const generateEmployeeId = () => {
-    const randomNum = Math.floor(100000 + Math.random() * 900000 );
-    return 'EMP-${randomNum}';
-  };
-  const employeeId = generateEmployeeId();
-
-  // 2️⃣ Insert user into profiles table
-  const { data: profileData, error: profileError } = await supabase
-    .from('app_profiles') // <-- replace with your table name if different
-    .insert({
-      user_id: authData.user.id,           // Must match the Auth user ID
+    const { data: authData, error: authError } = await supabase.auth.signUp({
       email: signupData.email,
-      full_name: signupData.name,
-      username: signupData.username,
-      employment_type: signupData.employmentType,
-      department: signupData.department,
-      team: signupData.team,
-      position: signupData.position,
-      gender: signupData.gender,
-      civil_status: signupData.civilStatus,
-      solo_parent: signupData.soloParent,
-      role: 'user',
-      employee_id: employeeId
+      password: signupData.password
     });
 
-  if (profileError) {
-    console.error("Supabase insert error full object:", profileError);
-    alert("Signup failed (DB): " + profileError.message);
+    if (authError) {
+      alert("Signup failed (Auth): " + authError.message);
+      setLoading(false);
+      return;
+    }
+
+    if (!authData.user?.id) {
+      alert("Signup failed: User ID not returned from Auth");
+      setLoading(false);
+      return;
+    }
+
+    // 2️⃣ Generate professional Employee ID, e.g., EMP-123456
+    const generateEmployeeId = () => {
+      const randomNum = Math.floor(100000 + Math.random() * 900000); // 6-digit
+      return `EMP-${randomNum}`;
+    };
+    const employeeId = generateEmployeeId();
+
+    // 3️⃣ Insert user into app_profiles table
+    const { data: profileData, error: profileError } = await supabase
+      .from('app_profiles')
+      .insert({
+        user_id: authData.user.id,           // Auth user ID
+        email: signupData.email,
+        full_name: signupData.name,
+        username: signupData.username,
+        employment_type: signupData.employmentType,
+        department: signupData.department,
+        team: signupData.team,
+        position: signupData.position,
+        gender: signupData.gender,
+        civil_status: signupData.civilStatus,
+        solo_parent: signupData.soloParent,
+        role: 'user',
+        employee_id: employeeId               // professional Employee ID
+        // id omitted; created_at uses default
+      });
+
+    // 4️⃣ Debug logging for any DB errors
+    if (profileError) {
+      console.error("Supabase insert error full object:", profileError);
+      alert("Signup failed (DB): " + profileError.message);
+      setLoading(false);
+      return;
+    }
+
+    // 5️⃣ Optional: log out new user to force login
+    await supabase.auth.signOut();
+
+    alert(`Account created successfully! Your Employee ID is ${employeeId}. Please log in.`);
+    setMode('login');
     setLoading(false);
-    return;
+
+  } catch (err) {
+    console.error("Unexpected signup error:", err);
+    alert("Signup failed: Unexpected error");
+    setLoading(false);
   }
-
-  // 3️⃣ Optional: sign out new user
-  await supabase.auth.signOut();
-
-  alert("Account created successfully! Your Employee ID is ${employeeId}. Please log in.");
-  setMode('login');
-  setLoading(false);
-
-} catch (err) {
-  console.error("Unexpected signup error:", err);
-  alert("Signup failed: Unexpected error");
-  setLoading(false);
-}
-
 };
+
 
 
   const handleLogin = async (e: React.FormEvent) => {
