@@ -100,11 +100,19 @@ const AuthPage: React.FC<Props> = () => {
     return;
   }
 
+  if (!authData.user?.id) {
+    alert("Signun failed: User ID not returned from Auth");
+    setLoading(false);
+    return;
+  }
+
+  const employeeId = Math.floor(100000 + Math.random() * 900000).toString();
+
   // 2️⃣ Insert user into profiles table
   const { data: profileData, error: profileError } = await supabase
     .from('app_profiles') // <-- replace with your table name if different
     .insert({
-      user_id: authData.user?.id,           // Must match the Auth user ID
+      user_id: authData.user.id,           // Must match the Auth user ID
       email: signupData.email,
       full_name: signupData.name,
       username: signupData.username,
@@ -115,7 +123,8 @@ const AuthPage: React.FC<Props> = () => {
       gender: signupData.gender,
       civil_status: signupData.civilStatus,
       solo_parent: signupData.soloParent,
-      role: 'user'
+      role: 'user',
+      employee_id: employeeId
     });
 
   if (profileError) {
@@ -128,9 +137,16 @@ const AuthPage: React.FC<Props> = () => {
   // 3️⃣ Optional: sign out new user
   await supabase.auth.signOut();
 
-  alert("Account created successfully! Please log in.");
+  alert("Account created successfully! Your Employee ID is ${employeeId}. Please log in.");
   setMode('login');
   setLoading(false);
+
+  catch (err) {
+    console.error("Unexpected signup error", err);
+    alert("signup failed: Unexpected error");
+    setLoading(false);
+  }
+
 };
 
 
