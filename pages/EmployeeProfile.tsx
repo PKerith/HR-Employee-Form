@@ -102,7 +102,7 @@ const AuthPage: React.FC<Props> = () => {
 
   // 2️⃣ Insert user into profiles table
   const { data: profileData, error: profileError } = await supabase
-    .from('profiles') // <-- replace with your table name if different
+    .from('app_profiles') // <-- replace with your table name if different
     .insert({
       id: authData.user?.id,           // Must match the Auth user ID
       email: signupData.email,
