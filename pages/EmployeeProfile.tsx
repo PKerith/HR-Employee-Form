@@ -39,44 +39,100 @@ const AuthPage: React.FC<Props> = () => {
   const [forgotEmail, setForgotEmail] = useState('');
 
   // Corrected handleSignup
+  // const handleSignup = async (e: React.FormEvent) => {
+  //   e.preventDefault();
+  //   if (signupData.password !== confirmPassword) {
+  //     alert("Passwords do not match!");
+  //     return;
+  //   }
+
+  //   setLoading(true);
+
+  //   const { data, error } = await supabase.auth.signUp({
+  //     email: signupData.email,
+  //     password: signupData.password,
+  //     options: {
+  //       data: {
+  //         full_name: signupData.name,
+  //         username: signupData.username,
+  //         employment_type: signupData.employmentType,
+  //         department: signupData.department,
+  //         team: signupData.team,
+  //         position: signupData.position,
+  //         gender: signupData.gender,
+  //         civil_status: signupData.civilStatus,
+  //         solo_parent: signupData.soloParent,
+  //         role: 'user'
+  //       }
+  //     }
+  //   });
+
+  //   if (error) {
+  //     alert("Signup failed: " + error.message);
+  //   } else {
+  //     await supabase.auth.signOut(); // optional: force logout for verification
+  //     alert("Account created successfully! Please log in.");
+  //     setMode('login'); // switch to login form
+  //   }
+
+  //   setLoading(false);
+  // };
+
   const handleSignup = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (signupData.password !== confirmPassword) {
-      alert("Passwords do not match!");
-      return;
-    }
+  e.preventDefault();
 
-    setLoading(true);
+  if (signupData.password !== confirmPassword) {
+    alert("Passwords do not match!");
+    return;
+  }
 
-    const { data, error } = await supabase.auth.signUp({
+  setLoading(true);
+
+  // 1️⃣ Create user in Supabase Auth
+  const { data: authData, error: authError } = await supabase.auth.signUp({
+    email: signupData.email,
+    password: signupData.password
+  });
+
+  if (authError) {
+    alert("Signup failed: " + authError.message);
+    setLoading(false);
+    return;
+  }
+
+  // 2️⃣ Insert user into profiles table
+  const { data: profileData, error: profileError } = await supabase
+    .from('profiles') // <-- replace with your table name if different
+    .insert({
+      id: authData.user?.id,           // Must match the Auth user ID
       email: signupData.email,
-      password: signupData.password,
-      options: {
-        data: {
-          full_name: signupData.name,
-          username: signupData.username,
-          employment_type: signupData.employmentType,
-          department: signupData.department,
-          team: signupData.team,
-          position: signupData.position,
-          gender: signupData.gender,
-          civil_status: signupData.civilStatus,
-          solo_parent: signupData.soloParent,
-          role: 'user'
-        }
-      }
+      full_name: signupData.name,
+      username: signupData.username,
+      employment_type: signupData.employmentType,
+      department: signupData.department,
+      team: signupData.team,
+      position: signupData.position,
+      gender: signupData.gender,
+      civil_status: signupData.civilStatus,
+      solo_parent: signupData.soloParent,
+      role: 'user'
     });
 
-    if (error) {
-      alert("Signup failed: " + error.message);
-    } else {
-      await supabase.auth.signOut(); // optional: force logout for verification
-      alert("Account created successfully! Please log in.");
-      setMode('login'); // switch to login form
-    }
-
+  if (profileError) {
+    console.error("Supabase insert error:", profileError);
+    alert("Signup failed (DB): " + profileError.message);
     setLoading(false);
-  };
+    return;
+  }
+
+  // 3️⃣ Optional: sign out new user
+  await supabase.auth.signOut();
+
+  alert("Account created successfully! Please log in.");
+  setMode('login');
+  setLoading(false);
+};
+
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
