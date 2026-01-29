@@ -104,7 +104,7 @@ const AuthPage: React.FC<Props> = () => {
   const { data: profileData, error: profileError } = await supabase
     .from('app_profiles') // <-- replace with your table name if different
     .insert({
-      id: authData.user?.id,           // Must match the Auth user ID
+      user_id: authData.user?.id,           // Must match the Auth user ID
       email: signupData.email,
       full_name: signupData.name,
       username: signupData.username,
@@ -119,7 +119,7 @@ const AuthPage: React.FC<Props> = () => {
     });
 
   if (profileError) {
-    console.error("Supabase insert error:", profileError);
+    console.error("Supabase insert error full object:", profileError);
     alert("Signup failed (DB): " + profileError.message);
     setLoading(false);
     return;
